@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const [products, setProducts] = useState<any>([]);
+const [products, setProducts] = useState<any>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
@@ -24,7 +24,7 @@ export default function Home() {
         const combined = [...savedProducts, ...data];
         
         // Duplicate remove karne ke liye logic
-        const unique = combined.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
+        const unique: any = combined.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
         
         setProducts(unique);
         setLoading(false);
