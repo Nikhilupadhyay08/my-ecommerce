@@ -20,7 +20,16 @@ export default function CheckoutPage() {
   };
 
   return (
-    <main style={{ maxWidth: '500px', margin: '50px auto', padding: '30px', border: '1px solid #eee', borderRadius: '20px', textAlign: 'center' }}>
+    <main
+      className="mx-auto my-8 flex-1 px-4"
+      style={{
+        maxWidth: "500px",
+        padding: "30px",
+        border: "1px solid #eee",
+        borderRadius: "20px",
+        textAlign: "center",
+      }}
+    >
       <h1>Shipping Details 🚚</h1>
       <p style={{ color: '#666' }}>Bas aakhri kadam! Apna pata bhariye.</p>
 

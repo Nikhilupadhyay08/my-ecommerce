@@ -1,7 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { mergeProductLists } from "@/lib/mergeProductLists";
+import { productCategory } from "@/lib/categories";
+import { idToString } from "@/lib/idToString";
 
 export default function Home() {
 const [products, setProducts] = useState<any>([]);
@@ -9,7 +12,14 @@ const [products, setProducts] = useState<any>([]);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const router = useRouter();
+
+  const categoryChips = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => set.add(productCategory(p)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [products]);
 
   useEffect(() => {
     // Database + LocalStorage combined
@@ -42,9 +52,13 @@ const [products, setProducts] = useState<any>([]);
 
   const totalPrice = cart.reduce((total, item) => total + item.price, 0);
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = products.filter((p) => {
+    const q = searchQuery.toLowerCase();
+    const name = (p.name || "").toLowerCase();
+    const catOk =
+      categoryFilter === "all" || productCategory(p) === categoryFilter;
+    return catOk && name.includes(q);
+  });
 
   if (loading) return (
     <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '20px', fontWeight: 'bold' }}>
@@ -53,7 +67,10 @@ const [products, setProducts] = useState<any>([]);
   );
 
   return (
-    <main style={{ backgroundColor: '#f9fafb', minHeight: '100vh', padding: '20px', fontFamily: '"Inter", sans-serif' }}>
+    <main
+      className="flex flex-1 flex-col bg-gray-50 px-4 py-5 sm:px-5 sm:py-6"
+      style={{ fontFamily: '"Inter", sans-serif' }}
+    >
       
       {/* Navbar Style Header */}
       <nav style={{ 
@@ -78,21 +95,97 @@ const [products, setProducts] = useState<any>([]);
           />
         </div>
 
-        <button 
-          onClick={() => setIsCartOpen(true)}
-          style={{ 
-            background: '#2563eb', color: 'white', padding: '12px 25px', borderRadius: '15px', 
-            fontWeight: 'bold', border: 'none', cursor: 'pointer', display: 'flex', gap: '10px'
-          }}
-        >
-          🛒 Cart <span style={{ background: 'rgba(255,255,255,0.2)', padding: '0 8px', borderRadius: '5px' }}>{cart.length}</span>
-        </button>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
+          <Link
+            href="/admin"
+            style={{
+              padding: "12px 18px",
+              borderRadius: "15px",
+              border: "1px solid #e5e7eb",
+              fontWeight: "600",
+              color: "#374151",
+              textDecoration: "none",
+              background: "white",
+            }}
+          >
+            Admin
+          </Link>
+          <button
+            onClick={() => setIsCartOpen(true)}
+            style={{
+              background: "#2563eb",
+              color: "white",
+              padding: "12px 25px",
+              borderRadius: "15px",
+              fontWeight: "bold",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              gap: "10px",
+            }}
+          >
+            🛒 Cart{" "}
+            <span
+              style={{
+                background: "rgba(255,255,255,0.2)",
+                padding: "0 8px",
+                borderRadius: "5px",
+              }}
+            >
+              {cart.length}
+            </span>
+          </button>
+        </div>
       </nav>
 
       {/* Hero Section */}
-      <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-        <h2 style={{ fontSize: '40px', fontWeight: '800', marginBottom: '10px' }}>Naye Deals, Sirf Aapke Liye!</h2>
-        <p style={{ color: '#6b7280' }}>Best quality products at unbeatable prices.</p>
+      <div style={{ textAlign: "center", marginBottom: "32px" }}>
+        <h2
+          style={{
+            fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
+            fontWeight: "800",
+            marginBottom: "10px",
+          }}
+        >
+          Naye Deals, Sirf Aapke Liye!
+        </h2>
+        <p style={{ color: "#6b7280" }}>
+          Best quality products at unbeatable prices.
+        </p>
+      </div>
+
+      {/* Categories */}
+      <div className="mx-auto mb-8 flex max-w-[1100px] flex-col gap-3">
+        <p className="text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+          Categories
+        </p>
+        <div className="flex flex-wrap justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setCategoryFilter("all")}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              categoryFilter === "all"
+                ? "bg-gray-900 text-white shadow"
+                : "bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            All
+          </button>
+          {categoryChips.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCategoryFilter(c)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                categoryFilter === c
+                  ? "bg-blue-600 text-white shadow"
+                  : "bg-white text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Products Grid */}
@@ -100,9 +193,9 @@ const [products, setProducts] = useState<any>([]);
         display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
         gap: '30px', maxWidth: '1100px', margin: '0 auto' 
       }}>
-        {filteredProducts.map((p) => (
-          <div 
-            key={p._id} 
+        {filteredProducts.map((p, idx) => (
+          <div
+            key={idToString(p._id) || `p-${idx}`}
             className="product-card"
             style={{ 
               border: 'none', padding: '20px', borderRadius: '24px', textAlign: 'center', 
@@ -115,8 +208,28 @@ const [products, setProducts] = useState<any>([]);
               padding: '30px', marginBottom: '20px' 
             }}>{p.image || '📦'}</div>
             
-            <h2 style={{ fontSize: '20px', fontWeight: '700', margin: '0 0 10px', color: '#111' }}>{p.name}</h2>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '20px' }}>{p.description}</p>
+            <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-blue-600">
+              {productCategory(p)}
+            </p>
+            <h2
+              style={{
+                fontSize: "20px",
+                fontWeight: "700",
+                margin: "0 0 10px",
+                color: "#111",
+              }}
+            >
+              {p.name}
+            </h2>
+            <p
+              style={{
+                color: "#6b7280",
+                fontSize: "14px",
+                marginBottom: "20px",
+              }}
+            >
+              {p.description}
+            </p>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
               <span style={{ fontSize: '24px', fontWeight: '900', color: '#111' }}>₹{p.price}</span>
@@ -138,7 +251,10 @@ const [products, setProducts] = useState<any>([]);
       {isCartOpen && (
         <>
           <div onClick={() => setIsCartOpen(false)} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.4)', zIndex: 999, backdropFilter: 'blur(4px)' }} />
-          <div style={{ position: 'fixed', top: 0, right: 0, width: '400px', height: '100%', background: 'white', zIndex: 1000, padding: '40px', display: 'flex', flexDirection: 'column', boxShadow: '-10px 0 30px rgba(0,0,0,0.1)' }}>
+          <div
+            className="fixed right-0 top-0 z-[1000] flex h-full w-full max-w-md flex-col bg-white p-6 shadow-[-10px_0_30px_rgba(0,0,0,0.1)] sm:p-10"
+            style={{ boxShadow: "-10px 0 30px rgba(0,0,0,0.1)" }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: '800' }}>My Bag 🛍️</h2>
               <button onClick={() => setIsCartOpen(false)} style={{ border: 'none', background: '#f3f4f6', padding: '10px 15px', borderRadius: '10px', cursor: 'pointer' }}>Close</button>
