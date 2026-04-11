@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { mergeProductLists } from "@/lib/mergeProductLists";
 
 export default function Home() {
 const [products, setProducts] = useState<any>([]);
@@ -20,12 +21,7 @@ const [products, setProducts] = useState<any>([]);
         // Local Storage se bhi check karein (Airtel DNS fix)
         const savedProducts = JSON.parse(localStorage.getItem("my_local_products") || "[]");
         
-        // Dono ko milakar dikhayein
-        const combined = [...savedProducts, ...data];
-        
-        // Duplicate remove karne ke liye logic
-        const unique: any = combined.filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
-        
+        const unique = mergeProductLists(savedProducts, data) as any[];
         setProducts(unique);
         setLoading(false);
       } catch (e) {

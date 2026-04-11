@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { mergeProductLists } from "@/lib/mergeProductLists";
 
 export default function AdminPage() {
   const [formData, setFormData] = useState({ name: "", price: "", image: "📦", description: "" });
@@ -14,11 +15,7 @@ export default function AdminPage() {
         const res = await fetch("/api/products");
         const data = await res.json();
         const saved = JSON.parse(localStorage.getItem("my_local_products") || "[]");
-        const combined = [...saved, ...data];
-        const unique = combined.filter(
-          (v, i, a) => a.findIndex((t: { name: string }) => t.name === v.name) === i
-        );
-        setLocalProducts(unique);
+        setLocalProducts(mergeProductLists(saved, data) as any[]);
       } catch {
         const saved = JSON.parse(localStorage.getItem("my_local_products") || "[]");
         setLocalProducts(saved);
