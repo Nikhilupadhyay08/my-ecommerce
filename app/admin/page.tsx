@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { mergeProductLists } from "@/lib/mergeProductLists";
 import { idToString } from "@/lib/idToString";
 import {
@@ -30,6 +31,13 @@ export default function AdminPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    router.push("/admin/login");
+    router.refresh();
+  };
 
   const reload = useCallback(async () => {
     try {
@@ -140,6 +148,13 @@ export default function AdminPage() {
           >
             ← Store
           </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-800 shadow-sm transition hover:bg-red-100"
+          >
+            Sign out
+          </button>
         </div>
       </div>
 

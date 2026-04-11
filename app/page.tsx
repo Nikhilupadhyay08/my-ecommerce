@@ -6,6 +6,8 @@ import { mergeProductLists } from "@/lib/mergeProductLists";
 import { productCategory } from "@/lib/categories";
 import { idToString } from "@/lib/idToString";
 
+const PRODUCTS_PER_PAGE = 12;
+
 export default function Home() {
 const [products, setProducts] = useState<any>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,6 +15,7 @@ const [products, setProducts] = useState<any>([]);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
   const router = useRouter();
 
   const categoryChips = useMemo(() => {
@@ -59,6 +62,24 @@ const [products, setProducts] = useState<any>([]);
       categoryFilter === "all" || productCategory(p) === categoryFilter;
     return catOk && name.includes(q);
   });
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE)
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, categoryFilter]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  const pageItems = useMemo(() => {
+    const start = (page - 1) * PRODUCTS_PER_PAGE;
+    return filteredProducts.slice(start, start + PRODUCTS_PER_PAGE);
+  }, [filteredProducts, page]);
 
   if (loading) return (
     <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '20px', fontWeight: 'bold' }}>
@@ -189,11 +210,16 @@ const [products, setProducts] = useState<any>([]);
       </div>
 
       {/* Products Grid */}
-      <div style={{ 
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
-        gap: '30px', maxWidth: '1100px', margin: '0 auto' 
-      }}>
-        {filteredProducts.map((p, idx) => (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+          gap: "30px",
+          maxWidth: "1100px",
+          margin: "0 auto",
+        }}
+      >
+        {pageItems.map((p, idx) => (
           <div
             key={idToString(p._id) || `p-${idx}`}
             className="product-card"
@@ -246,6 +272,32 @@ const [products, setProducts] = useState<any>([]);
           </div>
         ))}
       </div>
+
+      {filteredProducts.length > PRODUCTS_PER_PAGE && (
+        <div className="mx-auto mt-10 flex max-w-[1100px] flex-col items-center justify-center gap-4 sm:flex-row">
+          <p className="text-sm text-gray-600">
+            Page {page} of {totalPages} · {filteredProducts.length} products
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* --- CART DRAWER --- */}
       {isCartOpen && (
