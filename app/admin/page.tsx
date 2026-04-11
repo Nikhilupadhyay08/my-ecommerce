@@ -9,24 +9,56 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("my_local_products") || "[]");
-    setLocalProducts(saved);
+    const load = async () => {
+      try {
+        const res = await fetch("/api/products");
+        const data = await res.json();
+        const saved = JSON.parse(localStorage.getItem("my_local_products") || "[]");
+        const combined = [...saved, ...data];
+        const unique = combined.filter(
+          (v, i, a) => a.findIndex((t: { name: string }) => t.name === v.name) === i
+        );
+        setLocalProducts(unique);
+      } catch {
+        const saved = JSON.parse(localStorage.getItem("my_local_products") || "[]");
+        setLocalProducts(saved);
+      }
+    };
+    load();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const newProduct: any = { 
-      ...formData, 
-      _id: Date.now().toString(), 
-      price: Number(formData.price) 
+    const newProduct: any = {
+      ...formData,
+      _id: Date.now().toString(),
+      price: Number(formData.price),
     };
-    
+
+    const payload = {
+      name: newProduct.name,
+      price: newProduct.price,
+      image: newProduct.image,
+      description: newProduct.description,
+    };
+
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("API save failed");
+    } catch {
+      // Still keep a local copy if the server or DB is unavailable
+    }
+
     const updated = [newProduct, ...localProducts];
     localStorage.setItem("my_local_products", JSON.stringify(updated));
     setLocalProducts(updated);
-    
+
     alert("Product Add Ho Gaya! ✨");
     setFormData({ name: "", price: "", image: "📦", description: "" });
     setLoading(false);
