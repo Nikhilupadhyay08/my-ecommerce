@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import getMongoClient from "@/lib/mongodb";
 
 // Ye list temporary products store karegi jab tak DB connect nahi hota
 let localProducts = [
@@ -9,7 +9,7 @@ let localProducts = [
 
 export async function GET() {
   try {
-    const client = await clientPromise;
+    const client = await getMongoClient();
     const db = client.db("myStore"); 
     const products = await db.collection("products").find({}).toArray();
     
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     
     // 1. Database mein save karne ki koshish
     try {
-      const client = await clientPromise;
+      const client = await getMongoClient();
       const db = client.db("myStore");
       await db.collection("products").insertOne(body);
     } catch (dbError) {
