@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { mergeProductLists } from "@/lib/mergeProductLists";
 import { productCategory } from "@/lib/categories";
 import { idToString } from "@/lib/idToString";
+import { STORE_CART_KEY } from "@/lib/cartStorage";
 
 const PRODUCTS_PER_PAGE = 12;
 
@@ -12,7 +13,8 @@ export default function Home() {
 const [products, setProducts] = useState<any>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState<any[]>([]);
+  const [cartHydrated, setCartHydrated] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
@@ -23,6 +25,28 @@ const [products, setProducts] = useState<any>([]);
     products.forEach((p) => set.add(productCategory(p)));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [products]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_CART_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setCart(parsed);
+      }
+    } catch {
+      /* ignore */
+    }
+    setCartHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!cartHydrated) return;
+    try {
+      localStorage.setItem(STORE_CART_KEY, JSON.stringify(cart));
+    } catch {
+      /* ignore */
+    }
+  }, [cart, cartHydrated]);
 
   useEffect(() => {
     // Database + LocalStorage combined
@@ -335,7 +359,13 @@ const [products, setProducts] = useState<any>([]);
                   <span>Subtotal</span>
                   <span>₹{totalPrice}</span>
                 </div>
-                <button onClick={() => router.push("/checkout")} style={{ width: '100%', background: '#2563eb', color: 'white', border: 'none', padding: '20px', borderRadius: '20px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' }}>
+                <button
+                  onClick={() => {
+                    setIsCartOpen(false);
+                    router.push("/checkout");
+                  }}
+                  style={{ width: '100%', background: '#2563eb', color: 'white', border: 'none', padding: '20px', borderRadius: '20px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
                   Continue to Checkout
                 </button>
               </div>

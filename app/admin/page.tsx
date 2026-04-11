@@ -143,6 +143,12 @@ export default function AdminPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/admin/email"
+            className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50"
+          >
+            Email / SMTP
+          </Link>
+          <Link
             href="/"
             className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-300 hover:bg-gray-50"
           >

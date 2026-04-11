@@ -4,7 +4,13 @@ import { usePathname } from "next/navigation";
 
 export function ScrollShortcuts() {
   const pathname = usePathname();
-  if (pathname?.startsWith("/admin/login")) return null;
+  if (
+    pathname?.startsWith("/admin/login") ||
+    pathname === "/login" ||
+    pathname === "/register"
+  ) {
+    return null;
+  }
 
   const scrollTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });

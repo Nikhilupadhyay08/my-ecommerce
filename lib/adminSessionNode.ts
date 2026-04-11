@@ -1,13 +1,8 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { timingSafeEqual } from "crypto";
+import { parseSessionToken, signSessionToken } from "@/lib/sessionTokenNode";
 
-/** Server-only: build signed session token (HMAC-SHA256 over payload). */
 export function createAdminSessionToken(): string | null {
-  const secret = sessionSecret();
-  if (!secret) return null;
-  const exp = Date.now() + 7 * 24 * 60 * 60 * 1000;
-  const payload = JSON.stringify({ exp, v: 1 });
-  const sig = createHmac("sha256", secret).update(payload).digest("hex");
-  return Buffer.from(payload, "utf8").toString("base64url") + "." + sig;
+  return signSessionToken(sessionSecret(), {});
 }
 
 export function sessionSecret(): string {
@@ -31,4 +26,8 @@ export function safeEqualStrings(a: string, b: string): boolean {
   } catch {
     return false;
   }
+}
+
+export function verifyAdminSessionCookie(token: string | undefined): boolean {
+  return parseSessionToken(token, sessionSecret()) != null;
 }

@@ -38,6 +38,22 @@ export function SiteFooter() {
                   Checkout
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/login"
+                  className="text-gray-600 transition hover:text-blue-600"
+                >
+                  Sign in
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/register"
+                  className="text-gray-600 transition hover:text-blue-600"
+                >
+                  Register
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
